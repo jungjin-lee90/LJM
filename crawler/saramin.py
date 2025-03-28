@@ -18,7 +18,7 @@ def get_saramin_jobs(keyword):
 
             job_info = json.loads(raw_data) if raw_data else {}
 
-            title = job_info.get("dimension45", "")  # 직무명
+            title = job_info.get("dimension45", "")  # 타이틀명
             company = job_info.get("dimension48", "")  # 회사명
 
             if not (title and company and link):

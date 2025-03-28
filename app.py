@@ -9,6 +9,7 @@ def get_base64_image(path):
         return base64.b64encode(f.read()).decode()
 
 jobkorea_base64 = get_base64_image("/home/leejungjin/job_filter_project/icon/jobkorea.png")
+saramin_base64 = get_base64_image("/home/leejungjin/job_filter_project/icon/saramin.png")
 
 # CSS 삽입 (Base64 배경 이미지 포함)
 st.markdown(f"""
@@ -40,8 +41,25 @@ st.markdown(f"""
     .job-card.jobkorea {{
         background-image: url("data:image/png;base64,{jobkorea_base64}");
         background-repeat: no-repeat;
-        background-position: bottom center;
+        background-position: center calc(100% - 14px);
         background-size: 60px;
+    }}
+    .job-card.saramin {{
+        background-image: url("data:image/png;base64,{saramin_base64}");
+        background-repeat: no-repeat;
+        background-position: bottom center;
+        background-size: 85px;
+    }}
+    .job-title {{
+        font-size: 18px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }}
+    .job-company {{
+        font-size: 15px;
+        font-weight: 500;
+        color: #007B83;
     }}
     </style>
 """, unsafe_allow_html=True)
@@ -49,7 +67,7 @@ st.markdown(f"""
 # 타이틀 중앙 정렬
 st.markdown("""
     <div style="text-align: center;">
-        <h1>📌 맞춤형 채용공고 필터링 봇</h1>
+        <h1>📌 이직을 원하는 사람들</h1>
         <p>직무 키워드를 입력해 채용공고를 확인하세요.</p>
     </div>
 """, unsafe_allow_html=True)
@@ -82,13 +100,16 @@ if run_search:
             card_class = "job-card"
             if job.get("source") == "jobkorea":
                 card_class += " jobkorea"
+            else:
+                card_class += " saramin"
 
             st.markdown(f"""
                 <a href="{job['link']}" target="_blank" style="text-decoration: none; color: inherit;">
                     <div class="{card_class}">
-                        <strong>{job['title']}</strong><br>
-                        {job['company']}<br>
+                        <div class="job-title"> {job['title']}</div>
+                        <div class="job-company"> {job['company']}</div>
                     </div>
                 </a>
             """, unsafe_allow_html=True)
+
 
