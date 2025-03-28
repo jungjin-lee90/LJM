@@ -21,6 +21,9 @@ def get_saramin_jobs(keyword):
             title = job_info.get("dimension45", "")  # 직무명
             company = job_info.get("dimension48", "")  # 회사명
 
+            if not (title and company and link):
+                continue
+
             jobs.append({
                 "title": title,
                 "company": company,
