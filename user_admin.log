@@ -1,0 +1,5 @@
+nohup: 입력 무시
+Usage: streamlit [OPTIONS] COMMAND [ARGS]...
+Try 'streamlit --help' for help.
+
+Error: No such command 'user_admin.py'.
