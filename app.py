@@ -34,7 +34,7 @@ def get_color_from_company_type(company_type):
         return "#FB8C00"
     elif "외국계" in company_type:
         return "#C62828"
-    return "#0d47a1"
+    return "#5D4037"
 
 def get_icon_from_source(source):
     if "jobkorea" in source:
@@ -231,6 +231,7 @@ st.markdown(f"""
             <li><span style="display:inline-block; width:12px; height:12px; background:#00897B; margin-right:6px; border-radius:2px;"></span>중소기업</li>
             <li><span style="display:inline-block; width:12px; height:12px; background:#FB8C00; margin-right:6px; border-radius:2px;"></span>스타트업</li>
             <li><span style="display:inline-block; width:12px; height:12px; background:#C62828; margin-right:6px; border-radius:2px;"></span>외국계기업</li>
+            <li><span style="display:inline-block; width:12px; height:12px; background:#5D4037; margin-right:6px; border-radius:2px;"></span>알수없음</li>
         </ul>
     </div>
 """, unsafe_allow_html=True)
