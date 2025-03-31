@@ -1,7 +1,6 @@
 import streamlit as st
 import base64
-from crawler.saramin import get_saramin_jobs
-from crawler.jobkorea import get_jobkorea_jobs
+from crawler_sources import get_all_jobs
 import streamlit.components.v1 as components
 import hashlib
 
@@ -37,6 +36,16 @@ def get_color_from_company_type(company_type):
         return "#C62828"
     return "#0d47a1"
 
+def get_icon_from_source(source):
+    if "jobkorea" in source:
+        return jobkorea_base64
+    elif "saramin" in source:
+        return saramin_base64
+    elif "wanted" in source:
+        return wanted_base64
+    elif "rocketpunch" in source:
+        return rocket_base64
+
 # PNG 파일을 Base64로 인코딩
 def get_base64_image(path):
     with open(path, "rb") as f:
@@ -45,6 +54,8 @@ def get_base64_image(path):
 jobkorea_base64 = get_base64_image("./icon/jobkorea.png")
 saramin_base64 = get_base64_image("./icon/saramin.png")
 favicon_base64 = get_base64_image("./icon/EmployeeLee.png")
+wanted_base64 = get_base64_image("./icon/wanted.png")
+rocket_base64 = get_base64_image("./icon/rocketpunch.png")
 
 # 페이지 설정
 st.set_page_config(
@@ -178,7 +189,14 @@ components.html(f"""
 
 
 # 🔻 1차 구분선
-st.markdown("<hr style='border: 1px solid #ccc; margin-top: 30px; margin-bottom: 30px;'>", unsafe_allow_html=True)
+st.markdown("""
+    <hr style="
+        border: 1px solid #ccc;
+        width: 33%;
+        margin: 30px auto;
+    ">
+""", unsafe_allow_html=True)
+
 
 # 검색바 및 버튼 중앙 정렬
 left_col, search_col, right_col = st.columns([3, 3, 3])
@@ -218,24 +236,81 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # 🔻 2차 구분선
-st.markdown("<hr style='border: 1px solid #ccc; margin-top: 30px; margin-bottom: 30px;'>", unsafe_allow_html=True)
+st.markdown("""
+    <hr style="
+        border: 1px solid #ccc;
+        width: 33%;
+        margin: 30px auto;
+    ">
+""", unsafe_allow_html=True)
+
 
 # 페이지네이션 상태
 PER_PAGE = 30
 if "page" not in st.session_state:
     st.session_state.page = 0
 
-if run_search:
-    with st.spinner("채용공고를 수집 중입니다..."):
-        saramin_jobs = get_saramin_jobs(keyword=job_keyword)
-        jobkorea_jobs = get_jobkorea_jobs(keyword=job_keyword)
-        st.session_state.all_jobs = saramin_jobs + jobkorea_jobs
-        st.session_state.page = 0  # 검색 시 첫 페이지로 초기화
+if "loading" not in st.session_state:
+    st.session_state.loading = False
 
+if "search_triggered" not in st.session_state:
+    st.session_state.search_triggered = False
+
+if run_search:
+    st.session_state.loading = True
+    st.session_state.search_triggered = True
+    st.rerun() 
+
+if st.session_state.loading: 
+    # 애니메이션 정의
+    st.markdown("""
+    <style>
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .spinner {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border: 3px solid #ccc;
+        border-top: 3px solid #1A237E;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 10px;
+        vertical-align: middle;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # 로딩 UI
+    st.markdown("""
+    <div style="text-align: center; margin: 30px 0;">
+        <div style="display: inline-block;">
+            <div class="spinner"></div>
+            <span style="font-size: 18px; font-weight: bold; vertical-align: middle;">
+                채용공고를 수집 중입니다...
+            </span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# 검색 실행
+if st.session_state.search_triggered:
+    st.session_state.all_jobs = get_all_jobs(job_keyword)
+    st.session_state.page = 0
+    st.session_state.loading = False
+    st.session_state.search_triggered = False
+    st.rerun()  # 🔁 로딩 끝났으니 다시 렌더링
+    
 # all_jobs가 세션에 존재할 경우 결과 출력
 if "all_jobs" in st.session_state:
     all_jobs = st.session_state.all_jobs
-    st.success(f"총 {len(all_jobs)}개의 공고가 수집되었습니다.")
+    st.markdown(f"""
+        <div style="text-align: center; font-size: 16px; font-weight: bold; color: #388E3C; margin-top: 10px; margin-bottom: 10px;">
+            ✅ 총 {len(all_jobs)}개의 공고가 수집되었습니다.
+        </div>
+    """, unsafe_allow_html=True)
 
     total_pages = (len(all_jobs) - 1) // PER_PAGE + 1
     current_page = st.session_state.page
@@ -266,15 +341,19 @@ if "all_jobs" in st.session_state:
                 title = job.get("title", "공고 제목")
                 link = job.get("link", "#")
                 color = get_color_from_company_type(company_type)
+                source = job.get("source", "")
+                icon_base64 = get_icon_from_source(source)
+                icon_html = f"<img src='data:image/png;base64,{icon_base64}' style='height: 18px; margin-bottom: 4px;' />" if icon_base64 else ""
 
                 st.markdown(f"""<a href="{link}" target="_blank" style="text-decoration: none; color: inherit;">
-<div class="{card_class}" style="text-align: center; padding: 20px 16px; border-radius: 12px; min-height: 180px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-    <div style="background-color: {color}; color: white; font-size: 18px; font-weight: bold; padding: 12px 8px; border-radius: 12px; margin-bottom: 10px; letter-spacing: 1px;">
-        {company}
-    </div>
-    <div class="job-title" style="font-size: 15px;">{title}</div>
-</div>
-</a>""", unsafe_allow_html=True)
+                    <div class="{card_class}" style="text-align: center; padding: 20px 16px; border-radius: 12px; min-height: 180px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="margin-bottom: 4px;">{icon_html}</div>
+                        <div style="background-color: {color}; color: white; font-size: 18px; font-weight: bold; padding: 12px 8px; border-radius: 12px; margin-bottom: 10px; letter-spacing: 1px;">
+                            {company}
+                        </div>
+                        <div class="job-title" style="font-size: 15px;">{title}</div>
+                    </div>
+                </a>""", unsafe_allow_html=True)
 
     # 페이지네이션
     st.markdown("""<div style='text-align: center; margin-top: 20px;'>""", unsafe_allow_html=True)

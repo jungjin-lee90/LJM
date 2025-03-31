@@ -2,28 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 import json
 
-def get_company_logo_jobkorea(detail_url):
-    try:
-        headers = {"User-Agent": "Mozilla/5.0"}
-        res = requests.get(detail_url, headers=headers)
-        soup = BeautifulSoup(res.text, "html.parser")
-
-        # 상세 페이지 내 기업 로고 img 태그 찾기
-        logo_tag = soup.select_one("div.coLogo img")
-        if logo_tag:
-            logo_url = logo_tag.get("src")
-            if logo_url.startswith("//"):
-                logo_url = "https:" + logo_url
-            elif logo_url.startswith("/"):
-                logo_url = "https://www.jobkorea.co.kr" + logo_url
-            return logo_url
-    except Exception as e:
-        print("[로고 추출 에러]", e)
-
-    # 실패 시 기본 로고 이미지
-    return "/static/default_logo.png"
-
-
 def get_company_type_jobkorea(detail_url):
     try:
         headers = {"User-Agent": "Mozilla/5.0"}
