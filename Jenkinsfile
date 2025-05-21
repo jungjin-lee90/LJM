@@ -34,13 +34,9 @@ pipeline {
             steps {
                 sh """
                 echo "Cleaning up old Docker images for ${env.IMAGE_NAME}..."
-                docker images --format '{{.Repository}} {{.Tag}} {{.CreatedAt}} {{.ID}}' | \
-                  grep '^${env.IMAGE_NAME} ' | \
-                  grep -v 'latest' | \
-                  sort -rk3 | \
-                  tail -n +4 | \
-                  awk '{print \$4}' | \
-                  xargs -r docker rmi || true
+		docker images ${env.IMAGE_NAME} --format '{{.ID}}' | \
+  		    tail -n +4 | \
+  		    xargs -r docker rmi
                 """
             }
         }
