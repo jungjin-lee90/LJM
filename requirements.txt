@@ -2,3 +2,7 @@ streamlit
 openai
 pandas
 twilio
+beautifulsoup4
+lxml
+requests
+
