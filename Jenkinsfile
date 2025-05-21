@@ -1,5 +1,9 @@
 pipeline {
     agent any
+	
+    options {
+        disableConcurrentBuilds()  // 동시 실행 방지
+    }
 
     environment {
         IMAGE_NAME = 'ljm-app'
