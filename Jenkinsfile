@@ -12,25 +12,29 @@ pipeline {
                 git url: 'https://github.com/jungjin-lee90/LJM.git', branch: 'main'
             }
         }
-
-        stage('Build Docker Image') {
+	
+	stage('Checkout') {
             steps {
-                script {
-		    sh """
-                        echo "Building Docker image with tag: ${IMAGE_TAG}"
-                	docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                	docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-                    """
-                }
+                checkout scm
+            }
+        }
+	
+	stage('Build Docker Image') {
+            steps {
+                sh """
+                echo "Building Docker image with tag: ${env.IMAGE_TAG}"
+                docker build -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} .
+                docker tag ${env.IMAGE_NAME}:${env.IMAGE_TAG} ${env.IMAGE_NAME}:latest
+                """
             }
         }
 
-	stage('Clean old Docker images') {
+        stage('Clean old Docker images') {
             steps {
                 sh """
-                echo "Cleaning up old Docker images for ${IMAGE_NAME}..."
+                echo "Cleaning up old Docker images for ${env.IMAGE_NAME}..."
                 docker images --format '{{.Repository}} {{.Tag}} {{.CreatedAt}} {{.ID}}' | \
-                  grep '^${IMAGE_NAME} ' | \
+                  grep '^${env.IMAGE_NAME} ' | \
                   grep -v 'latest' | \
                   sort -rk3 | \
                   tail -n +4 | \
@@ -39,13 +43,13 @@ pipeline {
                 """
             }
         }
-	
-	stage('Run Container') {
+
+        stage('Run Container') {
             steps {
                 sh """
-                docker stop ${IMAGE_NAME} || true
-                docker rm ${IMAGE_NAME} || true
-                docker run -d --name ${IMAGE_NAME} --restart always -p 8501:8501 ${IMAGE_NAME}:${IMAGE_TAG}
+                docker stop ${env.IMAGE_NAME} || true
+                docker rm ${env.IMAGE_NAME} || true
+                docker run -d --name ${env.IMAGE_NAME} --restart always -p 8501:8501 ${env.IMAGE_NAME}:${env.IMAGE_TAG}
                 """
             }
         }
