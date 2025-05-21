@@ -7,6 +7,14 @@ pipeline {
     }
 
     stages {
+	stage('Set Version Tag') {
+            steps {
+                script {
+                    env.IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                }
+            }
+    	}
+
         stage('Clone Repository') {
             steps {
                 git url: 'https://github.com/jungjin-lee90/LJM.git', branch: 'main'
@@ -48,7 +56,7 @@ pipeline {
             steps {
                 sh """
                 docker stop ${env.IMAGE_NAME} || true
-                docker rm ${env.IMAGE_NAME} || true
+                docker rm -f ${env.IMAGE_NAME} || true
                 docker run -d --name ${env.IMAGE_NAME} --restart always -p 8501:8501 ${env.IMAGE_NAME}:${env.IMAGE_TAG}
                 """
             }
