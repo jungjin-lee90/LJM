@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'ljm-app'
+	IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
     }
 
     stages {
@@ -15,27 +16,37 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t $DOCKER_IMAGE .'
+		    sh """
+                        echo "Building Docker image with tag: ${IMAGE_TAG}"
+                	docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                	docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+                    """
                 }
             }
         }
 
-        stage('Stop & Remove Old Container') {
+	stage('Clean old Docker images') {
             steps {
-                script {
-                    sh '''
-                        docker stop ljm || true
-                        docker rm ljm || true
-                    '''
-                }
+                sh """
+                echo "Cleaning up old Docker images for ${IMAGE_NAME}..."
+                docker images --format '{{.Repository}} {{.Tag}} {{.CreatedAt}} {{.ID}}' | \
+                  grep '^${IMAGE_NAME} ' | \
+                  grep -v 'latest' | \
+                  sort -rk3 | \
+                  tail -n +4 | \
+                  awk '{print \$4}' | \
+                  xargs -r docker rmi || true
+                """
             }
         }
-
-        stage('Run Container') {
+	
+	stage('Run Container') {
             steps {
-                script {
-                    sh 'docker run -d -p 8501:8501 --name ljm --restart always $DOCKER_IMAGE'
-                }
+                sh """
+                docker stop ${IMAGE_NAME} || true
+                docker rm ${IMAGE_NAME} || true
+                docker run -d --name ${IMAGE_NAME} --restart always -p 8501:8501 ${IMAGE_NAME}:${IMAGE_TAG}
+                """
             }
         }
     }
