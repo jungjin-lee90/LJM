@@ -13,12 +13,6 @@ pipeline {
                 }
             }
     	}
-
-#        stage('Clone Repository') {
-#            steps {
-#                git url: 'https://github.com/jungjin-lee90/LJM.git', branch: 'main' # branch가 설정을 해도 자꾸 master로 잡혀서 강제로 추가.
-#            }
-#        }
 	
 	stage('Checkout') {
             steps {
