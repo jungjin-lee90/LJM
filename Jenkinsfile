@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/jungjin-lee90/LJM.git'
+                git url: 'https://github.com/jungjin-lee90/LJM.git', branch: 'main'
             }
         }
 
@@ -34,7 +34,7 @@ pipeline {
         stage('Run Container') {
             steps {
                 script {
-                    sh 'docker run -d -p 8501:8501 --name ljm $DOCKER_IMAGE'
+                    sh 'docker run -d -p 8501:8501 --name ljm --restart always $DOCKER_IMAGE'
                 }
             }
         }
