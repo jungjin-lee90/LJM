@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'ljm-app'
-	IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
     }
 
     stages {
@@ -15,11 +14,11 @@ pipeline {
             }
     	}
 
-        stage('Clone Repository') {
-            steps {
-                git url: 'https://github.com/jungjin-lee90/LJM.git', branch: 'main'
-            }
-        }
+#        stage('Clone Repository') {
+#            steps {
+#                git url: 'https://github.com/jungjin-lee90/LJM.git', branch: 'main' # branch가 설정을 해도 자꾸 master로 잡혀서 강제로 추가.
+#            }
+#        }
 	
 	stage('Checkout') {
             steps {
@@ -52,10 +51,24 @@ pipeline {
             }
         }
 
+	stage('Release Port 8501 if Used') {
+    	    steps {
+        	sh '''
+        	    echo "🔍 Checking if port 8501 is in use..."
+        	    CONFLICT=$(docker ps -q --filter "publish=8501")
+        	    if [ ! -z "$CONFLICT" ]; then
+          		echo "⚠ Port 8501 is in use. Removing conflicting container(s)..."
+          		docker rm -f $CONFLICT
+        	    else
+          		echo "✅ Port 8501 is free."
+        	    fi
+        	'''
+    	    }
+	}	
+
         stage('Run Container') {
             steps {
                 sh """
-                docker stop ${env.IMAGE_NAME} || true
                 docker rm -f ${env.IMAGE_NAME} || true
                 docker run -d --name ${env.IMAGE_NAME} --restart always -p 8501:8501 ${env.IMAGE_NAME}:${env.IMAGE_TAG}
                 """
@@ -63,4 +76,4 @@ pipeline {
         }
     }
 }
-
+#
