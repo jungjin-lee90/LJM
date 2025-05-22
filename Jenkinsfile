@@ -40,6 +40,14 @@ pipeline {
                 checkout scm
             }
         }
+
+	stage('Code Diff with Color') {
+    	    steps {
+        	ansiColor('xterm') {
+            	    sh 'git diff --color=always HEAD~1'
+            	}
+    	    }
+	}	
 	
 	stage('Label Build') {
     	    steps {
