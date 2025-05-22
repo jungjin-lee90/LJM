@@ -129,6 +129,23 @@ pipeline {
         	"""
     	    }
 	}
+	
+	stage('GitHub Release') {
+    	    when {
+        	expression { return env.IMAGE_TAG != null }
+    	    }
+    	    steps {
+        	withCredentials([string(credentialsId: 'github-pat', variable: 'GH_TOKEN')]) {
+            	    sh """
+            		gh auth login --with-token <<< "$GH_TOKEN"
+            		gh release create v${env.IMAGE_TAG} \
+              		--title "Release v${env.IMAGE_TAG}" \
+              		--notes "배포 완료된 버전입니다." \
+              		--repo jungjin-lee90/LJM
+            	    """
+        	}
+    	    }
+	}
     }
 
     post {
