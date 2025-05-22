@@ -12,9 +12,9 @@ pipeline {
         string(name: 'IMAGE_NAME', defaultValue: 'ljm-app', description: 'Docker image and container name')
     }
 
-    environment {
+//    environment {
      //    IMAGE_NAME = 'ljm-app'
-    }
+//    }
 
     stages {
 //	stage('Set Version Tag') {
