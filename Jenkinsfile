@@ -50,17 +50,23 @@ pipeline {
                 """
             }
         }
+	
+	stage('Clean old Docker images') {
+    	    steps {
+        	script {
+            	    def imageName = params.IMAGE_NAME
+            	    def currentImageId = sh(
+                    	script: "docker inspect --format='{{.Image}}' \$(docker ps -q --filter name=${imageName}) || true",
+                    	returnStdout: true
+            	    ).trim()
 
-        stage('Clean old Docker images') {
-            steps {
-                sh """
-                echo "Cleaning up old Docker images for ${params.IMAGE_NAME}..."
-		docker images ${params.IMAGE_NAME} --format '{{.ID}}' | \
-  		    tail -n +4 | \
-  		    xargs -r docker rmi
-                """
-            }
-        }
+            	    sh """
+            	    	echo "[*] Cleaning up unused Docker images (except running one)..."
+            	    	docker images ${imageName} --format '{{.ID}}' | grep -v "${currentImageId}" | tail -n +4 | xargs -r docker rmi || true
+            	    """
+                }
+    	    }
+	}
 
 	stage('Release Port if Used') {
    	     steps {
