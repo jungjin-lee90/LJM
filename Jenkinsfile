@@ -41,6 +41,23 @@ pipeline {
             }
         }
 	
+	stage('Label Build') {
+    	    steps {
+        	script {
+            	    def commitMsg = sh(script: "git log -1 --pretty=%s", returnStdout: true).trim()
+            	    def commitAuthor = sh(script: "git log -1 --pretty=%an", returnStdout: true).trim()
+            	    currentBuild.displayName = "#${env.BUILD_NUMBER} | ${commitMsg} by ${commitAuthor}"
+        	}
+    	    }
+	}	
+	
+	stage('Recent Commits') {
+    	    steps {
+        	echo "최근 커밋 내역:"
+        	sh "git log -3 --pretty=format:'%h | %s by %an' --abbrev-commit"
+    	    }
+	}	
+	
 	stage('Build Docker Image') {
             steps {
                 sh """
@@ -61,8 +78,8 @@ pipeline {
             	    ).trim()
 
             	    sh """
-            	    	echo "[*] Cleaning up unused Docker images (except running one)..."
-            	    	docker images ${imageName} --format '{{.ID}}' | grep -v "${currentImageId}" | tail -n +4 | xargs -r docker rmi || true
+            	    echo "[*] Cleaning up unused Docker images (except running one)..."
+            	    docker images ${imageName} --format '{{.ID}}' | grep -v "${currentImageId}" | tail -n +4 | xargs -r docker rmi || true
             	    """
                 }
     	    }
