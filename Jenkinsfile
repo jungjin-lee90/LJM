@@ -135,15 +135,17 @@ pipeline {
         	expression { return env.IMAGE_TAG != null }
     	    }
     	    steps {
-		withCredentials([string(credentialsId: 'github-pat', variable: 'GH_TOKEN')]) {
-    		    sh(script: '''
-        		gh auth login --with-token <<< "$GH_TOKEN"
-        		gh release create v'"$IMAGE_TAG"' \
-          		--title "Release v$IMAGE_TAG" \
-          		--notes "자동 배포된 릴리즈입니다." \
-          		--repo jungjin-lee90/LJM
-    		    ''', environment: [IMAGE_TAG: "${env.IMAGE_TAG}"])
-		}
+        	withCredentials([string(credentialsId: 'github-pat', variable: 'GH_TOKEN')]) {
+            	    withEnv(["IMAGE_TAG=${env.IMAGE_TAG}"]) {
+                	sh '''#!/bin/bash
+                    	    echo "$GH_TOKEN" | gh auth login --with-token
+                    	    gh release create "v$IMAGE_TAG" \
+                      	    --title "Release v$IMAGE_TAG" \
+                      	    --notes "자동 배포된 릴리즈입니다." \
+                      	    --repo jungjin-lee90/LJM
+                	'''
+            	    }
+        	}
     	    }
 	}
     }
