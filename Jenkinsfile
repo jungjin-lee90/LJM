@@ -102,15 +102,25 @@ pipeline {
         	}
     	    }
 	}
+	stage('Run Container') {
+    	    steps {
+        	sh """
+        	echo "[*] Stopping and removing existing container (if any)..."
+        	docker rm -f ${params.IMAGE_NAME} || true
 
-        stage('Run Container') {
-            steps {
-                sh """
-                docker rm -f ${params.IMAGE_NAME} || true
-                docker run -d --name ${params.IMAGE_NAME} --restart always -p ${params.PORT}:8501 ${params.IMAGE_NAME}:${env.IMAGE_TAG}
-                """
-            }
-        }
+        	echo "[*] Running container with healthcheck..."
+        	docker run -d \
+          	--name ${params.IMAGE_NAME} \
+          	--restart always \
+          	--health-cmd="curl -f http://localhost:8501/_stcore/health || exit 1" \
+          	--health-interval=30s \
+          	--health-timeout=5s \
+          	--health-retries=3 \
+          	-p ${params.PORT}:8501 \
+          	${params.IMAGE_NAME}:${env.IMAGE_TAG}
+        	"""
+    	    }
+	}
     }
 
     post {
