@@ -64,14 +64,15 @@ pipeline {
 
 	stage('Release Port 8501 if Used') {
     	    steps {
+		def port = params.PORT
         	sh '''
-        	    echo " Checking if port ${params.PORT} is in use..."
-        	    CONFLICT=$(docker ps -q --filter "publish=${params.PORT}")
+        	    echo " Checking if port ${port} is in use..."
+        	    CONFLICT=$(docker ps -q --filter "publish=${port}")
         	    if [ ! -z "$CONFLICT" ]; then
-          		echo " Port ${params.PORT} is in use. Removing conflicting container(s)..."
+          		echo " Port ${port} is in use. Removing conflicting container(s)..."
           		docker rm -f $CONFLICT
         	    else
-          		echo "Port ${params.PORT} is free."
+          		echo "Port ${port} is free."
         	    fi
         	'''
     	    }
